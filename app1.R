@@ -131,14 +131,6 @@ server <- function(input, output,session) {
     datatable(filtered_data(), options = list(pageLength = 8))
   })
   
-  # Line Plot - Monthly Sales Trend
-  #output$line_plot <- renderPlot({
-  # ggplot(filtered_data(), aes(x = Month, y = Sales, group = 1)) +
-  #  geom_line(color = "steelblue", size = 1.2) +
-  # geom_point(color = "darkblue", size = 3) +
-  #labs(title = "Monthly Sales Trend", x = "Month", y = "Sales") +
-  #theme_minimal(base_size = 13)
-  #})
   
   # Line Plot - Monthly Sales Trend
   output$line_plot <- renderPlotly({
@@ -162,12 +154,7 @@ server <- function(input, output,session) {
     ggplotly(p, tooltip = c("text"))
        })
   
-  #   ggplot(data, aes(x = Month, y = Sales, group = 1)) +
-  #     geom_line(color = "steelblue", size = 1.2) +
-  #     geom_point(color = "darkblue", size = 3) +
-  #     labs(title = "Monthly Sales Trend", x = "Month", y = "Sales") +
-  #     theme_minimal(base_size = 13)
-  # })
+
   
   # Bar Plot - Sales by Region
   output$bar_region <- renderPlot({
@@ -194,3 +181,4 @@ server <- function(input, output,session) {
 # RUN APP
 # -----------------------------
 shinyApp(ui = ui, server = server)
+
