@@ -3,6 +3,7 @@ library(shinydashboard)
 library(tidyverse)
 library(DT)
 library(readxl)
+library(plotly)
 
 
 # -----------------------------
@@ -15,6 +16,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       fileInput("upload","Upload your document", accept = c(".xlsx", ".xls")),
+      hr(),
       menuItem("Overview", tabName = "overview", icon = icon("home")),
       menuItem("Data Table", tabName = "data", icon = icon("table")),
       menuItem("Visuals", tabName = "visuals", icon = icon("chart-bar"))
@@ -35,7 +37,7 @@ ui <- dashboardPage(
                 valueBoxOutput("top_region", width = 4)
               ),
               fluidRow(
-                box(plotOutput("line_plot", height = "300px"),width = 12, title = "📈 Monthly Sales Trend", status = "primary", solidHeader = TRUE)
+                box(plotlyOutput("line_plot", height = "300px"),width = 12, title = "📈 Monthly Average Sales Trend", status = "primary", solidHeader = TRUE)
               )
       ),
       
@@ -61,7 +63,7 @@ ui <- dashboardPage(
 # -----------------------------
 # SERVER
 # -----------------------------
-server <- function(input, output) {
+server <- function(input, output,session) {
   
   # --- Load Uploaded Data ---
  # To make this table be displayed by default
@@ -139,7 +141,7 @@ server <- function(input, output) {
   #})
   
   # Line Plot - Monthly Sales Trend
-  output$line_plot <- renderPlot({
+  output$line_plot <- renderPlotly({
     req(filtered_data())
     data <- filtered_data()
    
@@ -147,13 +149,25 @@ server <- function(input, output) {
     if ("Month" %in% names(data)) {
       data$Month <- factor(data$Month,
                            levels = c("January", "February", "March", "April", "May"))}
-    
-    ggplot(data, aes(x = Month, y = Sales, group = 1)) +
-      geom_line(color = "steelblue", size = 1.2) +
-      geom_point(color = "darkblue", size = 3) +
-      labs(title = "Monthly Sales Trend", x = "Month", y = "Sales") +
-      theme_minimal(base_size = 13)
-  })
+    DATA <- data|>
+      group_by(Month)|>
+      summarise(SALES = mean(Sales))
+    p<- ggplot(DATA, aes(x = Month, y = SALES, group = 1,
+                         text = paste("Month", Month, "<br>Sales:", paste0("$", format(round(SALES, 2), big.mark=",")))))+
+      geom_point(color = "darkblue", size = 3)+
+      geom_line(color = "steelblue", size = 1.2)+
+      labs(title = "Average Sales Per Month", x = "Month", y = "Sales") +
+      #geom_smooth()+
+      theme_classic(base_size = 13)
+    ggplotly(p, tooltip = c("text"))
+       })
+  
+  #   ggplot(data, aes(x = Month, y = Sales, group = 1)) +
+  #     geom_line(color = "steelblue", size = 1.2) +
+  #     geom_point(color = "darkblue", size = 3) +
+  #     labs(title = "Monthly Sales Trend", x = "Month", y = "Sales") +
+  #     theme_minimal(base_size = 13)
+  # })
   
   # Bar Plot - Sales by Region
   output$bar_region <- renderPlot({
@@ -161,7 +175,7 @@ server <- function(input, output) {
     ggplot(filtered_data(), aes(x = Region, y = Sales, fill = Region)) +
       geom_bar(stat = "summary", fun = "sum", width = 0.7) +
       labs(title = "Total Sales by Region", x = "Region", y = "Total Sales") +
-      theme_minimal(base_size = 13) +
+      theme_classic(base_size = 13) +
       theme(legend.position = "none")
   })
   
@@ -171,7 +185,7 @@ server <- function(input, output) {
     ggplot(filtered_data(), aes(x = Product, y = Profit, fill = Product)) +
       geom_bar(stat = "summary", fun = "mean", width = 0.7) +
       labs(title = "Average Profit by Product", x = "Product", y = "Average Profit") +
-      theme_minimal(base_size = 13) +
+      theme_classic(base_size = 13) +
       theme(legend.position = "none")
   })
 }
