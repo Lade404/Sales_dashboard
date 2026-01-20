@@ -1,4 +1,4 @@
-library(shiny)
+library(shiny) 
 library(shinydashboard)
 library(tidyverse)
 library(DT)
@@ -181,4 +181,5 @@ server <- function(input, output,session) {
 # RUN APP
 # -----------------------------
 shinyApp(ui = ui, server = server)
+
 
